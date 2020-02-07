@@ -28,6 +28,7 @@ void process(const Node *n, uint indent)
 	else
 	{
 		std::cout << n->size() << "B" << std::endl;
+		std::cout.write((const char *) n->content(), n->size());
 	}
 }
 

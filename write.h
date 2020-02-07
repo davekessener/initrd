@@ -19,6 +19,8 @@ namespace dave
 		};
 
 		void write(std::ostream&, const entry *);
+
+		extern uint initrd_log_verbosity;
 	}
 }
 

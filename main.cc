@@ -13,23 +13,44 @@ using namespace dave::initrd;
 
 int main(int argc, char **argv)
 {
-	if(argc <= 2)
+	if(argc <= 1)
 	{
 		std::cerr << "usage: " << argv[0] << " out-file.ext in-file_1.ext..." << std::endl;
 
 		return 1;
 	}
 
-	std::vector<std::string> args{argv + 2, argv + argc};
-	std::string ofn{argv[1]};
+	char **farg = argv + 1;
 
-	std::cout << "saving to " << ofn << std::endl;
+	while(farg < (argv + argc) && (*farg)[0] == '-')
+	{
+		if((*farg)[1] == 'v')
+		{
+			initrd_log_verbosity = ((*farg)[2] - '0');
+		}
+
+		++farg;
+	}
+
+	if((argv + argc) - farg <= 1)
+	{
+		std::cerr << "usage: " << argv[0] << " -v0-3 out-file.ext in-file_1.ext..." << std::endl;
+
+		return 1;
+	}
+
+	std::vector<std::string> args{farg + 1, argv + argc};
+	std::string ofn{*farg};
+
+	if(initrd_log_verbosity >= 1)
+		std::cout << "saving to " << ofn << std::endl;
 
 	entry root;
 
 	for(const auto& fn : args)
 	{
-		std::cout << "adding " << fn << std::endl;
+		if(initrd_log_verbosity >= 1)
+			std::cout << "adding " << fn << std::endl;
 
 		std::vector<std::string> parts;
 

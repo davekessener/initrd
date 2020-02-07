@@ -4,6 +4,8 @@
 
 namespace dave { namespace initrd {
 
+uint initrd_log_verbosity = 0;
+
 namespace
 {
 	struct Impl
@@ -23,6 +25,15 @@ namespace
 
 		add(root);
 
+		if(initrd_log_verbosity >= 4)
+		{
+			std::cout << nodes.size() << " nodes pre-loaded" << std::endl;
+			for(const auto& n : nodes)
+			{
+				std::cout << "node '" << n.second->name << "', children @" << n.first << std::endl;
+			}
+		}
+
 		build();
 	}
 
@@ -37,9 +48,9 @@ namespace
 
 		for(uint i = 0 ; i < e->children.size() ; ++i)
 		{
-			auto& c{nodes.at(r + i)};
+			uint o = add(nodes.at(r + i).second);
 
-			c.first = add(c.second);
+			nodes.at(r + i).first = o;
 		}
 
 		return r;
@@ -57,7 +68,8 @@ namespace
 			disk_size += i.second->size;
 		}
 
-		std::cout << nodes.size() << " nodes, totaling " << disk_size << "B" << std::endl;
+		if(initrd_log_verbosity >= 1)
+			std::cout << nodes.size() << " nodes, totaling " << disk_size << "B" << std::endl;
 
 		disk.resize(disk_size);
 
@@ -69,7 +81,8 @@ namespace
 			u32 *self = (u32 *) &disk.at(base);
 			u8 *data = &disk.at(widx);
 
-//			std::cout << "node " << i << " @" << base << ":" << std::endl;
+			if(initrd_log_verbosity >= 2)
+				std::cout << "node " << i << " @" << base << ":" << std::endl;
 
 			self[0] = self[1] = self[2] = self[3] = 0;
 
@@ -103,11 +116,14 @@ namespace
 				self[3] = node->children.size();
 			}
 
-//			std::cout << "  name @" << self[0] << " \"" << node->name << "\"" << std::endl;
-//			std::cout << "  children @" << self[1] << std::endl;
-//			std::cout << "  content @" << self[2] << std::endl;
-//			std::cout << "  size " << self[3] << std::endl;
-//			std::cout << "  continuing @" << widx << std::endl;
+			if(initrd_log_verbosity >= 3)
+			{
+				std::cout << "  name @" << self[0] << " \"" << node->name << "\"" << std::endl;
+				std::cout << "  children @" << self[1] << std::endl;
+				std::cout << "  content @" << self[2] << std::endl;
+				std::cout << "  size " << self[3] << std::endl;
+				std::cout << "  continuing @" << widx << std::endl;
+			}
 		}
 	}
 }

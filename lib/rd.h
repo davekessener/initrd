@@ -23,6 +23,8 @@ namespace dave { namespace initrd
 			uint children( ) const { return is_directory() ? mSize : 0; }
 			const char *name( ) const { return ((const char *) this) + mName; }
 
+			const Self *find(const char *) const;
+
 		private:
 			Entry( );
 			~Entry( );
@@ -36,6 +38,46 @@ namespace dave { namespace initrd
 	typedef Entry<> Node;
 
 	static_assert(sizeof(Node) == 16);
+
+	namespace detail
+	{
+		inline bool streq(const char *i1, const char *i2, const char *i)
+		{
+			for(; i1 != i2 ; ++i1, ++i)
+			{
+				if(*i1 != *i)
+					return false;
+			}
+
+			return true;
+		}
+
+		inline const char *snext(const char *s, char c)
+		{
+			while(*s && *s != c) ++s;
+
+			return s;
+		}
+	}
+
+	template<typename T>
+	const Node *Entry<T>::find(const char *path) const
+	{
+		if(!*path)
+			return is_directory() ? nullptr : this;
+
+		const char *i = detail::snext(path, '/');
+
+		for(auto i1 = begin(), i2 = end() ; i1 != i2 ; ++i1)
+		{
+			if(detail::streq(path, i, i1->name()))
+			{
+				return *i ? i1->find(i + 1) : i1;
+			}
+		}
+
+		return nullptr;
+	}
 }}
 
 #endif
